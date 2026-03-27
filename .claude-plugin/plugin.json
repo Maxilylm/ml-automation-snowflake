@@ -1,0 +1,10 @@
+{
+  "name": "ml-automation-snowflake",
+  "version": "0.1.0",
+  "description": "Snowflake development and ML automation extension for ml-automation. SQL development, Snowpark pipelines, Snowflake ML training, and deployment to Snowflake Model Registry and Streamlit in Snowflake.",
+  "author": { "name": "Maximo Lorenzo y Losada" },
+  "repository": "https://github.com/Maxilylm/ml-automation-snowflake",
+  "license": "MIT",
+  "keywords": ["snowflake", "snowpark", "snowflake-ml", "sql", "data-engineering", "ml-automation-extension", "streamlit-in-snowflake"],
+  "dependencies": ["ml-automation-core"]
+}
