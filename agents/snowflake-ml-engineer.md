@@ -4,7 +4,7 @@ description: "Train models using Snowpark ML or Snowflake ML Functions. Register
 model: sonnet
 color: "#1B9CD0"
 tools: [Read, Write, Bash(*), Glob, Grep]
-extends: ml-automation
+extends: spark
 routing_keywords: [snowpark ml, snowflake ml, snowflake model, snowflake train, snowflake feature store, snowflake ml functions, snowflake forecast, snowflake anomaly detection]
 hooks_into:
   - before-deploy

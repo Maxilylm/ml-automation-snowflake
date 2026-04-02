@@ -4,7 +4,7 @@ description: "Snowflake connection management, credential setup, connection test
 model: sonnet
 color: "#38A1DB"
 tools: [Read, Write, Bash(*), Glob, Grep]
-extends: ml-automation
+extends: spark
 routing_keywords: [snowflake connect, snowflake credentials, snowflake connection, snowflake auth, snowflake setup, snowflake config]
 ---
 

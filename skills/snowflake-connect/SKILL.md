@@ -2,7 +2,7 @@
 name: snowflake-connect
 description: "Setup and test Snowflake connection. Configures credentials, tests connectivity, stores project-specific overrides."
 aliases: [sf connect, snowflake setup, snowflake auth]
-extends: ml-automation
+extends: spark
 user_invocable: true
 ---
 

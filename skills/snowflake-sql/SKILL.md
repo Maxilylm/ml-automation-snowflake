@@ -2,7 +2,7 @@
 name: snowflake-sql
 description: "Generate and execute Snowflake SQL from natural language — DDL, DML, queries with approval before execution"
 aliases: [sf sql, snowflake query, snowflake ddl]
-extends: ml-automation
+extends: spark
 user_invocable: true
 ---
 

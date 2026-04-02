@@ -2,7 +2,7 @@
 name: snowflake-pipeline
 description: "Build Snowpark data transformation pipelines with DataFrame API"
 aliases: [sf pipeline, snowpark pipeline, snowflake transform]
-extends: ml-automation
+extends: spark
 user_invocable: true
 ---
 

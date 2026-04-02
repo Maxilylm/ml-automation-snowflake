@@ -1,4 +1,4 @@
-# ml-automation-snowflake
+# spark-snowflake
 
 Snowflake development and ML automation extension for [ml-automation](https://github.com/Maxilylm/ml-automation-core).
 
@@ -11,7 +11,7 @@ Snowflake development and ML automation extension for [ml-automation](https://gi
 ## Installation
 
 ```bash
-claude plugin add /path/to/ml-automation-snowflake
+claude plugin add /path/to/spark-snowflake
 ```
 
 ## What's Included

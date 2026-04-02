@@ -2,7 +2,7 @@
 name: snowflake-status
 description: "Check Snowflake resources — warehouse usage, deployed models, Streamlit apps, stored procedures, recent queries"
 aliases: [sf status, snowflake resources, snowflake info]
-extends: ml-automation
+extends: spark
 user_invocable: true
 ---
 

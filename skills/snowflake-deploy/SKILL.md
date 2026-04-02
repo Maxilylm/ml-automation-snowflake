@@ -2,7 +2,7 @@
 name: snowflake-deploy
 description: "Deploy to Snowflake — Model Registry, Streamlit in Snowflake, or stored procedure inference endpoint"
 aliases: [sf deploy, snowflake model deploy, streamlit in snowflake]
-extends: ml-automation
+extends: spark
 user_invocable: true
 ---
 

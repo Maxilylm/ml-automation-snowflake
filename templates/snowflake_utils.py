@@ -1,7 +1,7 @@
 """
-Snowflake utilities for the ml-automation-snowflake extension plugin.
+Snowflake utilities for the spark-snowflake extension plugin.
 
-Requires ml_utils.py from the ml-automation core plugin to be present
+Requires ml_utils.py from the spark core plugin to be present
 in the same directory (copied via Stage 0 of Snowflake commands).
 """
 

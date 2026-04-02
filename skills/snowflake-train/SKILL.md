@@ -2,7 +2,7 @@
 name: snowflake-train
 description: "Train models using Snowpark ML or Snowflake ML Functions (FORECAST, ANOMALY_DETECTION). Registers in Model Registry."
 aliases: [sf train, snowpark ml train, snowflake model]
-extends: ml-automation
+extends: spark
 user_invocable: true
 ---
 

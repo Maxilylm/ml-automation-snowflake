@@ -4,7 +4,7 @@ description: "Validate SQL quality, Snowflake best practices, cost optimization,
 model: sonnet
 color: "#0D7EAD"
 tools: [Read, Write, Bash(*), Glob, Grep]
-extends: ml-automation
+extends: spark
 routing_keywords: [snowflake review, snowflake optimize, snowflake cost, snowflake best practices, snowflake query performance, snowflake audit]
 hooks_into:
   - after-evaluation

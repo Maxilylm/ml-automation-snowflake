@@ -2,7 +2,7 @@
 name: snowflake-coldstart
 description: "Full Snowflake ML workflow — connect, discover data, build pipeline, train model, deploy to Snowflake"
 aliases: [sf coldstart, snowflake workflow, snowflake ml pipeline]
-extends: ml-automation
+extends: spark
 user_invocable: true
 ---
 

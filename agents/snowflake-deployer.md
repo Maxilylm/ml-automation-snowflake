@@ -4,7 +4,7 @@ description: "Deploy models to Snowflake Model Registry, create Streamlit in Sno
 model: sonnet
 color: "#056B91"
 tools: [Read, Write, Bash(*), Glob, Grep]
-extends: ml-automation
+extends: spark
 routing_keywords: [snowflake deploy, streamlit in snowflake, snowflake stored procedure, snowflake udf, snowflake model registry, snowflake sis]
 ---
 
