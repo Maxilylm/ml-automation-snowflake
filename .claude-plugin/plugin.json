@@ -1,6 +1,6 @@
 {
   "name": "ml-automation-snowflake",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Snowflake development and ML automation extension for ml-automation. SQL development, Snowpark pipelines, Snowflake ML training, and deployment to Snowflake Model Registry and Streamlit in Snowflake.",
   "author": { "name": "Maximo Lorenzo y Losada" },
   "repository": "https://github.com/Maxilylm/ml-automation-snowflake",

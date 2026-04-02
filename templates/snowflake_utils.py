@@ -9,7 +9,7 @@ import os
 import json
 from pathlib import Path
 
-from ml_utils import save_agent_report, load_agent_report
+from ml_utils import save_agent_report  # noqa: F401 — re-exported for extension commands
 
 
 # --- Connection Management ---
