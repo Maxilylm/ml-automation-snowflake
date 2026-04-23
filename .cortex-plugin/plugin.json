@@ -1,0 +1,27 @@
+{
+  "name": "spark-snowflake",
+  "version": "0.2.0",
+  "description": "Snowflake development and ML automation extension for spark. SQL development, Snowpark pipelines, Snowflake ML training, and deployment to Snowflake Model Registry and Streamlit in Snowflake.",
+  "author": {
+    "name": "Maximo Lorenzo y Losada"
+  },
+  "repository": "https://github.com/Maxilylm/ml-automation-snowflake",
+  "license": "MIT",
+  "keywords": [
+    "snowflake",
+    "snowpark",
+    "snowflake-ml",
+    "sql",
+    "data-engineering",
+    "spark-extension",
+    "streamlit-in-snowflake",
+    "cortex-code"
+  ],
+  "dependencies": ["spark-core"],
+  "cortex": {
+    "agents_dir": "agents",
+    "skills_dir": "skills",
+    "commands_dir": "commands",
+    "hooks_dir": "hooks"
+  }
+}
