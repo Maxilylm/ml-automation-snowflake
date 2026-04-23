@@ -1,9 +1,10 @@
 ---
 name: snowflake-coldstart
-description: "Full Snowflake ML workflow — connect, discover data, build pipeline, train model, deploy to Snowflake"
+description: "Full Snowflake ML workflow — connect, discover data, build pipeline, train model, deploy to Snowflake. Triggers: sf coldstart, snowflake workflow, snowflake ml pipeline, end-to-end snowflake, snowflake ml project."
 aliases: [sf coldstart, snowflake workflow, snowflake ml pipeline]
 extends: spark
 user_invocable: true
+tools: [Read, Write, Bash, sql_execute]
 ---
 
 # Snowflake Coldstart

@@ -1,6 +1,6 @@
 ---
 name: snowflake-reviewer
-description: "Validate SQL quality, Snowflake best practices, cost optimization, query performance, and Snowflake-compatibility of ML pipelines."
+description: "Validate SQL quality, Snowflake best practices, cost optimization, query performance, and Snowflake-compatibility of ML pipelines. Triggers: snowflake review, snowflake optimize, snowflake cost, snowflake best practices, snowflake query performance, snowflake audit."
 model: sonnet
 color: "#0D7EAD"
 tools: [Read, Write, Bash(*), Glob, Grep]

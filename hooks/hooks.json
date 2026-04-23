@@ -1,3 +1,27 @@
 {
-  "hooks": {}
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import sys; sys.path.insert(0, 'src'); \\ntry:\\n    from snowflake_utils import detect_snowflake_relevance\\n    r = detect_snowflake_relevance('.')\\n    if r['is_snowflake']:\\n        print('[spark-snowflake] Snowflake indicators detected: ' + ', '.join(r['indicators']))\\n        print('[spark-snowflake] Prefer $snowflake-* skills and Cortex Code native tools (sql_execute, #TABLE, cortex search object, cortex analyst) over local Python helpers.')\\nexcept Exception:\\n    pass\" 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import sys, json, os; sys.path.insert(0, 'src'); \\ntry:\\n    from ml_utils import save_agent_report\\n    save_agent_report('spark_snowflake_session', {'status': 'session_ended', 'note': 'Cortex Code session summary placeholder'})\\nexcept Exception:\\n    pass\" 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "_comment": "Cortex Code event hooks. SessionStart injects Snowflake context awareness; Stop writes a session summary to the report bus. Both are best-effort (fail silently if ml_utils/snowflake_utils are not yet in src/). The Claude Code plugin-lifecycle hooks (after-init, before-deploy, after-evaluation) referenced in agent frontmatter have no equivalent in Cortex Code — see AGENTS.md 'Cortex Code Orchestration' section for the team-based alternative pattern."
 }

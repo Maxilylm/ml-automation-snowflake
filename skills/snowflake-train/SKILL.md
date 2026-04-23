@@ -1,9 +1,10 @@
 ---
 name: snowflake-train
-description: "Train models using Snowpark ML or Snowflake ML Functions (FORECAST, ANOMALY_DETECTION). Registers in Model Registry."
+description: "Train models using Snowpark ML or Snowflake ML Functions (FORECAST, ANOMALY_DETECTION). Registers in Model Registry. Triggers: sf train, snowpark ml train, snowflake model, forecast snowflake, anomaly detection snowflake, train in warehouse, contribution explorer."
 aliases: [sf train, snowpark ml train, snowflake model]
 extends: spark
 user_invocable: true
+tools: [Read, Write, Bash, sql_execute]
 ---
 
 # Snowflake Train

@@ -1,6 +1,6 @@
 ---
 name: snowflake-deployer
-description: "Deploy models to Snowflake Model Registry, create Streamlit in Snowflake dashboards, set up stored procedures and UDFs for inference."
+description: "Deploy models to Snowflake Model Registry, create Streamlit in Snowflake dashboards, set up stored procedures and UDFs for inference. Triggers: snowflake deploy, streamlit in snowflake, snowflake stored procedure, snowflake udf, snowflake model registry, snowflake sis."
 model: sonnet
 color: "#056B91"
 tools: [Read, Write, Bash(*), Glob, Grep]

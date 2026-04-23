@@ -1,9 +1,10 @@
 ---
 name: snowflake-status
-description: "Check Snowflake resources — warehouse usage, deployed models, Streamlit apps, stored procedures, recent queries"
+description: "Check Snowflake resources — warehouse usage, deployed models, Streamlit apps, stored procedures, recent queries. Triggers: sf status, snowflake resources, snowflake info, warehouse usage, show my snowflake models, check deployments snowflake."
 aliases: [sf status, snowflake resources, snowflake info]
 extends: spark
 user_invocable: true
+tools: [Read, sql_execute]
 ---
 
 # Snowflake Status

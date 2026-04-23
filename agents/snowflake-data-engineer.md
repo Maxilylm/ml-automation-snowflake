@@ -1,6 +1,6 @@
 ---
 name: snowflake-data-engineer
-description: "Snowflake SQL development, table design, data pipelines, Snowpark transformations, stages, streams, and tasks."
+description: "Snowflake SQL development, table design, data pipelines, Snowpark transformations, stages, streams, and tasks. Triggers: snowflake sql, snowflake table, snowflake pipeline, snowpark, snowflake ddl, snowflake warehouse, snowflake stage, snowflake stream, snowflake task, snowflake view, snowflake schema."
 model: sonnet
 color: "#29B5E8"
 tools: [Read, Write, Bash(*), Glob, Grep]

@@ -1,9 +1,10 @@
 ---
 name: snowflake-connect
-description: "Setup and test Snowflake connection. Configures credentials, tests connectivity, stores project-specific overrides."
+description: "Setup and test Snowflake connection. Configures credentials, tests connectivity, stores project-specific overrides. Triggers: sf connect, snowflake setup, snowflake auth, connect to snowflake."
 aliases: [sf connect, snowflake setup, snowflake auth]
 extends: spark
 user_invocable: true
+tools: [Read, Write, Bash, sql_execute]
 ---
 
 # Snowflake Connect
