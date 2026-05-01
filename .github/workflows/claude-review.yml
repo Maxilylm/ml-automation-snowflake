@@ -18,6 +18,9 @@ jobs:
   validate-pr-link:
     name: PR must reference Jira (PM3-N)
     runs-on: ubuntu-latest
+    # Exempt Dependabot — its auto-generated PRs cannot include a PM3 reference.
+    # Human-authored PRs still require the linked ticket. (PM3-83)
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Check PR title/body references PM3-N
         env:
