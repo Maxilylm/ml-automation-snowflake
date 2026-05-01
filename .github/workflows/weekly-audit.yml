@@ -1,0 +1,61 @@
+name: Weekly tech-debt audit (submit)
+
+on:
+  schedule:
+    # Monday 03:00 UTC — off-hours globally (Americas still asleep, APAC just starting)
+    - cron: "0 3 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  submit-audit-batch:
+    name: Submit audit batch to Anthropic
+    runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    steps:
+      # ── Gate: skip cleanly when secret is not set ─────────────────────────
+      - name: Skip cleanly when ANTHROPIC_API_KEY is not set
+        id: gate
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::ANTHROPIC_API_KEY not set on this repo; skipping weekly audit (set via Settings → Secrets and variables → Actions)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Checkout + Python ─────────────────────────────────────────────────
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip == 'false'
+        with:
+          fetch-depth: 0  # needed for git log (recent file discovery)
+
+      - uses: actions/setup-python@v5
+        if: steps.gate.outputs.skip == 'false'
+        with:
+          python-version: "3.11"
+
+      # ── Submit the batch ──────────────────────────────────────────────────
+      - name: Submit audit batch
+        if: steps.gate.outputs.skip == 'false'
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          AUDIT_MODEL: ${{ vars.AUDIT_MODEL }}  # optional override; script defaults to claude-sonnet-4-6
+        run: |
+          python scripts/submit_audit_batch.py
+
+      # ── Upload batch-ID artifact so audit-poll.yml can find it ───────────
+      - name: Upload batch-ID artifact
+        if: steps.gate.outputs.skip == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          # Name includes run_id so audit-poll can list and identify which
+          # weekly-audit runs are pending.  Pattern: audit-batch-<run_id>.
+          name: audit-batch-${{ github.run_id }}
+          path: audit-batch-id.txt
+          retention-days: 30
