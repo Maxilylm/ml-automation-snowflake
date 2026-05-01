@@ -37,8 +37,8 @@ plugins:
 
 nav:
   - Home: index.md
-  - Contributing: contributing.md
-  - Routing (AGENTS.md): agents.md
+# Contributing and AGENTS.md routing live at the repo root and aren't part of
+# the docs site. PM3-82: keep nav lean until docs/ has richer per-skill content.
 
 markdown_extensions:
   - admonition

@@ -8,10 +8,10 @@ This plugin's work is tracked in Jira project [PM3](https://blend360.atlassian.n
 
 ## Routing
 
-See [AGENTS.md](agents.md) — canonical list of agents and skills.
+See [AGENTS.md](https://github.com/BLEND360/ml-automation-snowflake/blob/main/AGENTS.md) on GitHub — canonical list of agents and skills.
 
 ## Repository
 
 - [GitHub repo](https://github.com/BLEND360/ml-automation-snowflake)
-- [Contributing guide](contributing.md) — branch convention, smart commits, PR template
+- [Contributing guide](https://github.com/BLEND360/ml-automation-snowflake/blob/main/CONTRIBUTING.md) — branch convention, smart commits, PR template
 - [CI/CD pipeline](https://github.com/BLEND360/ml-automation-snowflake/blob/main/.github/workflows/claude-review.yml)
