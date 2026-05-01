@@ -1,0 +1,73 @@
+name: Bug report
+description: Something isn't working as documented or expected
+title: "[bug] "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bugs land on the [PM3 Jira board](https://blend360.atlassian.net/jira/core/projects/PM3/board) once triaged. Filing here surfaces them to the maintainer; serious issues will be promoted to a PM3 ticket.
+
+  - type: input
+    id: plugin
+    attributes:
+      label: Plugin
+      description: Which ml-automation-* plugin is affected?
+      placeholder: "ml-automation-llm"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version / commit
+      description: Plugin version (from .cortex-plugin/plugin.json) or git commit SHA
+      placeholder: "v1.2.0 or 7a19524"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Concise description of the actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-expected
+    attributes:
+      label: What did you expect?
+      description: Concise description of the expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps. Include exact agent/skill invocations or input data shape if relevant.
+      placeholder: |
+        1. Run /llm-evaluate with input X
+        2. Observe output Y instead of expected Z
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / error output
+      description: Paste relevant logs, stack traces, or CI output. Use code fences.
+      render: shell
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity (your assessment)
+      options:
+        - "Critical — production breakage / data loss"
+        - "High — feature unusable, no workaround"
+        - "Medium — workaround exists, degraded experience"
+        - "Low — cosmetic, edge case"
+    validations:
+      required: true
