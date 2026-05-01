@@ -1,0 +1,51 @@
+site_name: ml-automation-snowflake
+site_description: Snowflake development and ML automation. SQL authoring, Snowpark pipelines, Snowpark ML training, model registry, and Streamlit in Snowflake deployment. Requires spark-core installed.
+site_url: https://blend360.github.io/ml-automation-snowflake/
+repo_url: https://github.com/BLEND360/ml-automation-snowflake
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - search.highlight
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_source: true
+
+nav:
+  - Home: index.md
+  - Contributing: contributing.md
+  - Routing (AGENTS.md): agents.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - tables
+  - toc:
+      permalink: true

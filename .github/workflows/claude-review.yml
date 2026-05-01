@@ -1,0 +1,109 @@
+name: Claude review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  validate-pr-link:
+    name: PR must reference Jira (PM3-N)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title/body references PM3-N
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+          if echo "$TITLE $BODY" | grep -qE 'PM3-[0-9]+'; then
+            echo "Linked Jira ticket found."
+          else
+            echo "::error::PR must reference a Jira ticket (PM3-N) in the title or body. See CONTRIBUTING.md."
+            exit 1
+          fi
+
+  validate-plugin-structure:
+    name: Validate plugin layout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/validate_plugin.py
+
+  test:
+    name: Tests + coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install deps
+        run: |
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f pyproject.toml ]; then pip install -e ".[dev]" || pip install -e . || true; fi
+          pip install pytest pytest-cov
+      - name: Run tests
+        run: |
+          if [ -d tests ] || [ -d test ]; then
+            pytest --cov=. --cov-report=xml
+          else
+            echo "No tests directory yet (PM3-49 will fix); skipping"
+          fi
+      - name: Upload coverage to Codecov
+        if: hashFiles('coverage.xml') != ''
+        uses: codecov/codecov-action@v4
+        with:
+          files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+        continue-on-error: true
+
+  claude-review:
+    name: Claude code review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Claude Code CLI
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash
+          echo "$HOME/.claude/bin" >> "$GITHUB_PATH"
+      - name: Run headless Claude review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python scripts/claude_review.py \
+            --base-ref "origin/${{ github.base_ref }}" \
+            --pr-number "${{ github.event.pull_request.number }}" \
+            --output findings.json
+      - name: Post findings as inline PR review
+        if: always() && hashFiles('findings.json') != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python scripts/post_findings.py --findings findings.json
+      - name: Upload findings artifact (for dedup on next push)
+        if: always() && hashFiles('findings.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: findings-${{ github.run_id }}
+          path: findings.json
+          retention-days: 14
