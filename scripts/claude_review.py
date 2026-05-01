@@ -66,10 +66,14 @@ Set `is_new: true` for findings not in the prior list; `is_new: false` if you ar
 
 
 def run_claude(prompt: str) -> list[dict]:
+    # `claude --json-schema` expects an inline JSON Schema STRING, not a file
+    # path (verified against `claude --help`: "Example: {"type":"object",...}").
+    # Read the schema file and pass its contents.
+    schema_text = SCHEMA_PATH.read_text()
     cmd = [
         "claude", "-p",
         "--output-format", "json",
-        "--json-schema", str(SCHEMA_PATH),
+        "--json-schema", schema_text,
         prompt,
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)

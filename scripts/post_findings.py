@@ -11,7 +11,7 @@ Required env:
     PR_NUMBER
 
 Usage (CI):
-    python scripts/post_findings.py --findings findings.json --plugin llm
+    python scripts/post_findings.py --findings findings.json
 """
 from __future__ import annotations
 
