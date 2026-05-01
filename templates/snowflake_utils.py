@@ -15,7 +15,30 @@ from ml_utils import save_agent_report  # noqa: F401 — re-exported for extensi
 # --- Connection Management ---
 
 CONNECTIONS_TOML_PATH = Path.home() / ".snowflake" / "connections.toml"
-PROJECT_CONFIG_PATH = Path(".claude") / "snowflake-config.json"
+
+# Config path lookup order: Cortex Code first, then Claude Code for backward compat.
+# Both files have the same schema; the first one found wins.
+CORTEX_CONFIG_PATH = Path(".cortex") / "snowflake-config.json"
+CLAUDE_CONFIG_PATH = Path(".claude") / "snowflake-config.json"
+CONFIG_PATH_CANDIDATES = [CORTEX_CONFIG_PATH, CLAUDE_CONFIG_PATH]
+
+# PROJECT_CONFIG_PATH retained for backward compat with any external importers.
+PROJECT_CONFIG_PATH = CLAUDE_CONFIG_PATH
+
+
+def running_in_cortex_code():
+    """Return True if we appear to be running inside Cortex Code.
+
+    Detection heuristics: CORTEX_CODE_SESSION env var set, or .cortex/ dir exists
+    in the current project, or the Cortex CLI connections dir is present.
+    """
+    if os.environ.get("CORTEX_CODE_SESSION"):
+        return True
+    if Path(".cortex").is_dir():
+        return True
+    if (Path.home() / ".snowflake" / "cortex").is_dir():
+        return True
+    return False
 
 
 def get_snowflake_connection(connection_name="default"):
@@ -39,25 +62,34 @@ def get_snowflake_connection(connection_name="default"):
 
 
 def get_project_config():
-    """Load project-specific Snowflake config from .claude/snowflake-config.json.
+    """Load project-specific Snowflake config.
+
+    Looks in .cortex/snowflake-config.json first (Cortex Code), then falls
+    back to .claude/snowflake-config.json (Claude Code). Returns empty dict
+    if neither exists.
 
     Returns:
         dict with connection overrides, or empty dict if no config
     """
-    if PROJECT_CONFIG_PATH.exists():
-        with open(PROJECT_CONFIG_PATH) as f:
-            return json.load(f)
+    for path in CONFIG_PATH_CANDIDATES:
+        if path.exists():
+            with open(path) as f:
+                return json.load(f)
     return {}
 
 
 def save_project_config(config):
     """Save project-specific Snowflake config.
 
+    Writes to .cortex/snowflake-config.json when running under Cortex Code,
+    otherwise to .claude/snowflake-config.json.
+
     Args:
         config: dict with connection_name, database, schema, warehouse, role
     """
-    PROJECT_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(PROJECT_CONFIG_PATH, "w") as f:
+    target = CORTEX_CONFIG_PATH if running_in_cortex_code() else CLAUDE_CONFIG_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "w") as f:
         json.dump(config, f, indent=2)
 
 
@@ -219,7 +251,9 @@ def detect_snowflake_relevance(project_path="."):
     if CONNECTIONS_TOML_PATH.exists():
         indicators.append("~/.snowflake/connections.toml exists")
 
-    # Check project config
+    # Check project config (Cortex Code first, then Claude Code)
+    if (project / ".cortex" / "snowflake-config.json").exists():
+        indicators.append(".cortex/snowflake-config.json exists")
     if (project / ".claude" / "snowflake-config.json").exists():
         indicators.append(".claude/snowflake-config.json exists")
 

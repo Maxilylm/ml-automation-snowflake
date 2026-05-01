@@ -1,9 +1,10 @@
 ---
 name: snowflake-migrate
-description: "Migrate existing Python ML code (pandas, sklearn) to Snowpark equivalents"
+description: "Migrate existing Python ML code (pandas, sklearn) to Snowpark equivalents. Triggers: sf migrate, pandas to snowpark, snowpark migration, convert to snowpark, rewrite for warehouse, move pandas code to snowflake."
 aliases: [sf migrate, pandas to snowpark, snowpark migration]
 extends: spark
 user_invocable: true
+tools: [Read, Write, Glob, Grep]
 ---
 
 # Snowflake Migrate

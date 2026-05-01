@@ -1,6 +1,6 @@
 ---
 name: snowflake-connector
-description: "Snowflake connection management, credential setup, connection testing, data loading and unloading between Snowflake and local."
+description: "Snowflake connection management, credential setup, connection testing, data loading and unloading between Snowflake and local. Triggers: snowflake connect, snowflake credentials, snowflake connection, snowflake auth, snowflake setup, snowflake config."
 model: sonnet
 color: "#38A1DB"
 tools: [Read, Write, Bash(*), Glob, Grep]

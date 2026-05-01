@@ -10,10 +10,16 @@ Train a model using Snowpark ML or Snowflake ML Functions.
 
 ### Stage 0: Ensure Snowflake Connection
 
-1. Check if `ml_utils.py` exists in `src/` — if missing, copy from core plugin (`~/.claude/plugins/*/templates/ml_utils.py`)
+1. Check if `ml_utils.py` exists in `src/` — if missing, copy from core plugin. Search paths:
+   - Cortex Code: `.cortex/skills/*/templates/ml_utils.py`, `~/.snowflake/cortex/skills/*/templates/ml_utils.py`
+   - Claude Code: `~/.claude/plugins/*/templates/ml_utils.py`
 2. Check if `snowflake_utils.py` exists in `src/` — if missing, copy from this plugin's `templates/snowflake_utils.py`
-3. Run `/snowflake-connect --check` to verify connection is active
-4. If connection fails, stop and tell user to run `/snowflake-connect`
+3. **Prefer Cortex Code native tools when available:**
+   - `sql_execute` for SQL — including `SELECT CURRENT_VERSION()` and model registry queries
+   - `#DB.SCHEMA.TABLE` to inject training-table metadata into prompts
+   - Fall back to `snowflake_utils` helpers under Claude Code
+4. Verify connection: `sql_execute("SELECT CURRENT_VERSION()")` or `/snowflake-connect --check`
+5. If connection fails, tell the user to run `/connections` (Cortex Code) or `/snowflake-connect` (Claude Code)
 
 ### Mode 1: Snowpark ML
 

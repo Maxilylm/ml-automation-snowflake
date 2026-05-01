@@ -1,9 +1,10 @@
 ---
 name: snowflake-sql
-description: "Generate and execute Snowflake SQL from natural language — DDL, DML, queries with approval before execution"
+description: "Generate and execute Snowflake SQL from natural language — DDL, DML, queries with approval before execution. Triggers: sf sql, snowflake query, snowflake ddl, create snowflake table, query snowflake, snowflake merge, natural language to sql."
 aliases: [sf sql, snowflake query, snowflake ddl]
 extends: spark
 user_invocable: true
+tools: [Read, Write, sql_execute]
 ---
 
 # Snowflake SQL

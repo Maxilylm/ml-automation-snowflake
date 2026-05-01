@@ -1,6 +1,6 @@
 ---
 name: snowflake-ml-engineer
-description: "Train models using Snowpark ML or Snowflake ML Functions. Register models in Snowflake Model Registry. Feature store integration."
+description: "Train models using Snowpark ML or Snowflake ML Functions. Register models in Snowflake Model Registry. Feature store integration. Triggers: snowpark ml, snowflake ml, snowflake model, snowflake train, snowflake feature store, snowflake ml functions, snowflake forecast, snowflake anomaly detection."
 model: sonnet
 color: "#1B9CD0"
 tools: [Read, Write, Bash(*), Glob, Grep]

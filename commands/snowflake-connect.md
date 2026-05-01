@@ -13,16 +13,28 @@ Setup and test Snowflake connection. Configures credentials, tests connectivity,
 
 ## Workflow
 
+### 0) Detect host environment
+
+If running inside Cortex Code, delegate to native connection tooling before manual TOML editing:
+
+1. Run `cortex connections list` — show existing connections
+2. If the user needs to add/select one, tell them to use `/connections` (Cortex Code interactive UI) or `cortex connections set --connection <name>`
+3. Verify with `sql_execute("SELECT CURRENT_VERSION(), CURRENT_ACCOUNT(), CURRENT_ROLE(), CURRENT_WAREHOUSE()")`
+4. Skip steps 2–4 below (the TOML-writing flow) — Cortex Code manages this file natively
+5. Proceed directly to step 5 (project overrides) using `.cortex/snowflake-config.json`
+
+If running under Claude Code (no `sql_execute` tool, no `.cortex/` dir, no `CORTEX_CODE_SESSION` env var), use the manual flow below.
+
 ### 1) Check existing connection
 
 Check if `~/.snowflake/connections.toml` exists.
 
 If exists and `--check` flag:
-- Test with `SELECT CURRENT_VERSION()`
+- Test with `SELECT CURRENT_VERSION()` (via `sql_execute` if available, else `snowflake_utils.test_connection()`)
 - Report: account, user, role, warehouse, database, schema
 - Exit
 
-### 2) Interactive setup (if no connections.toml)
+### 2) Interactive setup (if no connections.toml, Claude Code only)
 
 Prompt user for:
 - **Account identifier** (e.g., `xy12345.us-east-1`)
@@ -61,7 +73,7 @@ conn.close()
 
 ### 5) Project overrides
 
-Write `.claude/snowflake-config.json`:
+Write to `.cortex/snowflake-config.json` (Cortex Code) or `.claude/snowflake-config.json` (Claude Code). Both files have the same schema; `snowflake_utils.save_project_config()` auto-selects the right path based on host detection:
 
 ```json
 {

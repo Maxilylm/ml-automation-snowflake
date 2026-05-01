@@ -1,0 +1,61 @@
+name: Feature request
+description: Propose a new agent, skill, or capability for this plugin
+title: "[feat] "
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Approved feature requests get a PM3 ticket and roll up under the [plugin's roadmap](https://blend360.atlassian.net/jira/core/projects/PM3/board) (filter by label `plugin:<name>`).
+
+  - type: input
+    id: plugin
+    attributes:
+      label: Plugin
+      placeholder: "ml-automation-llm"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the user need first; the proposed solution comes after.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed agent / skill / capability
+      description: |
+        Concrete shape of the addition. What does the agent do? What's the slash command? What inputs/outputs?
+        If the addition is a skill, sketch a SKILL.md frontmatter (name, description, when-to-use phrases).
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What did you consider and reject? Helps avoid re-litigating the same trade-offs.
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - "Single plugin"
+        - "Multiple plugins (cross-plugin contract change)"
+        - "Meta plugin / spark-core (affects every plugin)"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: breaking
+    attributes:
+      label: Breaking change?
+      options:
+        - label: This change removes or renames an existing agent/skill/command
+        - label: This change narrows the input contract of an existing skill (allowed-tools, argument-hint)
+        - label: This change is purely additive (new agent/skill/command, no removals)

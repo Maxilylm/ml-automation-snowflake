@@ -1,9 +1,10 @@
 ---
 name: snowflake-pipeline
-description: "Build Snowpark data transformation pipelines with DataFrame API"
+description: "Build Snowpark data transformation pipelines with DataFrame API. Triggers: sf pipeline, snowpark pipeline, snowflake transform, snowpark transform, feature engineering in snowflake, snowflake dataframe pipeline."
 aliases: [sf pipeline, snowpark pipeline, snowflake transform]
 extends: spark
 user_invocable: true
+tools: [Read, Write, Bash, sql_execute]
 ---
 
 # Snowflake Pipeline

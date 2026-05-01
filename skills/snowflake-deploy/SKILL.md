@@ -1,9 +1,10 @@
 ---
 name: snowflake-deploy
-description: "Deploy to Snowflake — Model Registry, Streamlit in Snowflake, or stored procedure inference endpoint"
+description: "Deploy to Snowflake — Model Registry, Streamlit in Snowflake, or stored procedure inference endpoint. Triggers: sf deploy, snowflake model deploy, streamlit in snowflake, sis deploy, snowflake stored procedure, promote model to production snowflake."
 aliases: [sf deploy, snowflake model deploy, streamlit in snowflake]
 extends: spark
 user_invocable: true
+tools: [Read, Write, Bash, sql_execute]
 ---
 
 # Snowflake Deploy

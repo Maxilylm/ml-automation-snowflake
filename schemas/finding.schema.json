@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/m-lorenzolosada-blend/blend-spark-harness/schemas/finding.schema.json",
+  "title": "Code review finding",
+  "description": "Single finding produced by the Claude review pipeline. Used as the structured-output schema for `claude -p --json-schema schemas/finding.schema.json`.",
+  "type": "object",
+  "required": ["file", "line", "severity", "category", "message"],
+  "additionalProperties": false,
+  "properties": {
+    "file": {
+      "type": "string",
+      "description": "Repo-relative path of the file the finding applies to (e.g., 'ml-automation-llm/agents/llm-evaluator.md').",
+      "minLength": 1
+    },
+    "line": {
+      "type": "integer",
+      "description": "1-based line number where the finding starts. Use the line of the first affected statement, not the surrounding block.",
+      "minimum": 1
+    },
+    "end_line": {
+      "type": ["integer", "null"],
+      "description": "Optional 1-based last line of the finding range. Null/absent for single-line findings.",
+      "minimum": 1
+    },
+    "severity": {
+      "type": "string",
+      "description": "Severity tier per CLAUDE.md. Only these values are reportable; STYLE/MINOR are filtered out at prompt level and must never appear here.",
+      "enum": ["CRITICAL", "BUG", "SECURITY", "CORRECTNESS", "BREAKING"]
+    },
+    "category": {
+      "type": "string",
+      "description": "Sub-classification within severity. 'other' permitted with a populated `category_detail`.",
+      "enum": [
+        "logic-error",
+        "off-by-one",
+        "swallowed-exception",
+        "mutable-default",
+        "float-equality",
+        "race-condition",
+        "parallelism-in-benchmark",
+        "sql-injection",
+        "command-injection",
+        "weak-crypto",
+        "leaked-secret",
+        "removed-public-api",
+        "manifest-schema-violation",
+        "orphan-file",
+        "broken-reference",
+        "missing-random-seed",
+        "modified-gold-standard",
+        "rubric-version-not-bumped",
+        "other"
+      ]
+    },
+    "category_detail": {
+      "type": ["string", "null"],
+      "description": "Human-readable detail when category is 'other'. Required if category=='other', else null."
+    },
+    "message": {
+      "type": "string",
+      "description": "What the issue is, in one or two sentences. Concrete and actionable. Avoid hedging language ('might', 'could be').",
+      "minLength": 10,
+      "maxLength": 600
+    },
+    "suggested_fix": {
+      "type": ["string", "null"],
+      "description": "Optional concrete fix. Code snippet OK. Null if the fix is non-obvious or context-dependent."
+    },
+    "code_snippet": {
+      "type": ["string", "null"],
+      "description": "Optional excerpt of the offending code (≤10 lines) for reviewer context."
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Calibrated confidence in this finding being a true positive. Used for human-review routing; threshold per CLAUDE.md.",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "detected_pattern": {
+      "type": ["string", "null"],
+      "description": "The rule/criterion that triggered this finding. Used for false-positive analysis when developers dismiss findings (provenance per WS-4 PM3-24)."
+    },
+    "is_new": {
+      "type": "boolean",
+      "description": "True if this finding is new since the last review pass on this PR; false if previously reported. Enables prior-findings dedup."
+    }
+  },
+  "allOf": [
+    {
+      "description": "If category is 'other', category_detail must be a non-empty string.",
+      "if": {"properties": {"category": {"const": "other"}}},
+      "then": {
+        "properties": {
+          "category_detail": {"type": "string", "minLength": 1}
+        },
+        "required": ["category_detail"]
+      }
+    }
+  ]
+}

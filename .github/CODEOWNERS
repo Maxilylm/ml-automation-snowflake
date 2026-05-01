@@ -1,0 +1,21 @@
+# CODEOWNERS — auto-assigns PR reviewers based on touched paths.
+# Syntax: <pattern> <owner1> <owner2> ...
+# Owners must have write access to the repo.
+
+# Default owner for everything not matched below
+*                                    @m-lorenzolosada-blend
+
+# Public-API surface — protect from accidental drift
+/AGENTS.md                           @m-lorenzolosada-blend
+/.cortex-plugin/plugin.json          @m-lorenzolosada-blend
+/agents/                             @m-lorenzolosada-blend
+/commands/                           @m-lorenzolosada-blend
+/skills/                             @m-lorenzolosada-blend
+
+# CI / config
+/.github/                            @m-lorenzolosada-blend
+/.claude/                            @m-lorenzolosada-blend
+/CLAUDE.md                           @m-lorenzolosada-blend
+/CONTRIBUTING.md                     @m-lorenzolosada-blend
+/scripts/                            @m-lorenzolosada-blend
+/schemas/                            @m-lorenzolosada-blend
