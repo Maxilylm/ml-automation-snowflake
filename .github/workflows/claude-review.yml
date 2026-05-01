@@ -39,8 +39,8 @@ jobs:
     name: Validate plugin layout
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - run: python scripts/validate_plugin.py
@@ -49,7 +49,7 @@ jobs:
     name: Tests + coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Detect dep file (controls pip cache)
         id: deps
         run: |
@@ -60,13 +60,13 @@ jobs:
           fi
       - name: Setup Python (with pip cache)
         if: steps.deps.outputs.has_deps == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
       - name: Setup Python (no cache, no deps file present)
         if: steps.deps.outputs.has_deps == 'false'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install deps
@@ -83,7 +83,7 @@ jobs:
           fi
       - name: Upload coverage to Codecov
         if: hashFiles('coverage.xml') != ''
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           files: coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -104,11 +104,11 @@ jobs:
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         if: steps.gate.outputs.skip == 'false'
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         if: steps.gate.outputs.skip == 'false'
         with:
           python-version: "3.11"
@@ -134,7 +134,7 @@ jobs:
         run: python scripts/post_findings.py --findings findings.json
       - name: Upload findings artifact (for dedup on next push)
         if: steps.gate.outputs.skip == 'false' && always() && hashFiles('findings.json') != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: findings-${{ github.run_id }}
           path: findings.json
