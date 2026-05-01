@@ -43,14 +43,19 @@ This repo IS one Claude Code plugin. The following files are the plugin's **publ
 
 ## Manifest minimum
 
+The manifest is **metadata-only** in this harness (PM3-79 decision 2026-05-01: option c). AGENTS.md is the canonical routing source of truth — manifest does NOT need to enumerate `agents` / `commands` / `skills` arrays.
+
 ```json
 {
   "name": "spark-<domain>",
   "version": "0.1.0",
   "description": "...",
-  "agents": [...],
-  "commands": [...],
-  "skills": [...]
+  "cortex": {
+    "agents_dir": "agents",
+    "skills_dir": "skills",
+    "commands_dir": "commands",
+    "hooks_dir": "hooks"
+  }
 }
 ```
 

@@ -8,11 +8,15 @@ Two layers of checks:
 
 2. **Strict (opt-in via STRICT_PLUGIN_VALIDATION=1)** — bidirectional checks:
    AGENTS.md mentions /foo but no skill/command exists (dangling reference);
-   plugin.json arrays must match files on disk. Off by default until manifests
-   are populated (PM3-79).
+   plugin.json arrays must match files on disk.
 
-The strict layer is exposed so the policy can be turned on at the org level
-once manifests are reconciled, without touching workflow YAML.
+Manifest arrays (agents/commands/skills) are intentionally metadata-only in this
+harness — AGENTS.md is the canonical routing source of truth (PM3-79 decision
+2026-05-01: option c). Strict mode's array consistency check is therefore an
+opt-in for a hypothetical future state where a registry consumer reads the
+manifest arrays. Today, no code reads those arrays; AGENTS.md is the single
+source of truth, actively maintained as part of every PR. Enable strict mode
+only AFTER running a populate script across all plugins (one-time migration).
 """
 from __future__ import annotations
 
