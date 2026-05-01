@@ -47,10 +47,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Detect dep file (controls pip cache)
+        id: deps
+        run: |
+          if [ -f requirements.txt ] || [ -f pyproject.toml ]; then
+            echo "has_deps=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_deps=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Setup Python (with pip cache)
+        if: steps.deps.outputs.has_deps == 'true'
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
+      - name: Setup Python (no cache, no deps file present)
+        if: steps.deps.outputs.has_deps == 'false'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - name: Install deps
         run: |
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
@@ -74,34 +89,48 @@ jobs:
   claude-review:
     name: Claude code review
     runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
+      - name: Skip cleanly when ANTHROPIC_API_KEY is not set
+        id: gate
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::ANTHROPIC_API_KEY not set on this repo; skipping Claude review (set via Settings → Secrets and variables → Actions)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip == 'false'
         with:
           fetch-depth: 0
       - uses: actions/setup-python@v5
+        if: steps.gate.outputs.skip == 'false'
         with:
           python-version: "3.11"
       - name: Install Claude Code CLI
+        if: steps.gate.outputs.skip == 'false'
         run: |
           curl -fsSL https://claude.ai/install.sh | bash
           echo "$HOME/.claude/bin" >> "$GITHUB_PATH"
       - name: Run headless Claude review
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        if: steps.gate.outputs.skip == 'false'
+        timeout-minutes: 8
         run: |
           python scripts/claude_review.py \
             --base-ref "origin/${{ github.base_ref }}" \
             --pr-number "${{ github.event.pull_request.number }}" \
             --output findings.json
       - name: Post findings as inline PR review
-        if: always() && hashFiles('findings.json') != ''
+        if: steps.gate.outputs.skip == 'false' && always() && hashFiles('findings.json') != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python scripts/post_findings.py --findings findings.json
       - name: Upload findings artifact (for dedup on next push)
-        if: always() && hashFiles('findings.json') != ''
+        if: steps.gate.outputs.skip == 'false' && always() && hashFiles('findings.json') != ''
         uses: actions/upload-artifact@v4
         with:
           name: findings-${{ github.run_id }}
