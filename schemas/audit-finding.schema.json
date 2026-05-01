@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/m-lorenzolosada-blend/blend-spark-harness/schemas/audit-finding.schema.json",
+  "title": "Tech-debt audit finding",
+  "description": "Single finding produced by the weekly tech-debt audit pipeline. Used as the item schema inside the `report_findings` tool call returned by the Anthropic Batches API.",
+  "type": "object",
+  "required": ["severity", "category", "file", "message", "auto_fixable"],
+  "additionalProperties": false,
+  "properties": {
+    "severity": {
+      "type": "string",
+      "description": "Severity tier for this finding. STYLE findings are filtered out at runtime; include here so model output validates if the model produces one.",
+      "enum": ["CRITICAL", "SECURITY", "BREAKING", "BUG", "TECH_DEBT", "STYLE"]
+    },
+    "category": {
+      "type": "string",
+      "description": "Sub-classification of the finding. Use 'other' only when no other value fits, and always populate `category_detail` in that case.",
+      "enum": [
+        "outdated-dependency",
+        "dead-code",
+        "inconsistent-style",
+        "missing-test",
+        "documentation-drift",
+        "architectural-debt",
+        "swallowed-exception",
+        "mutable-default",
+        "weak-crypto",
+        "leaked-secret",
+        "removed-public-api",
+        "manifest-schema-violation",
+        "orphan-file",
+        "broken-reference",
+        "other"
+      ]
+    },
+    "category_detail": {
+      "type": ["string", "null"],
+      "description": "Human-readable detail when category is 'other'. Required (non-empty) if category=='other'; null otherwise."
+    },
+    "file": {
+      "type": "string",
+      "description": "Repo-relative path of the file the finding applies to (e.g., 'ml-automation-llm/agents/llm-evaluator.md').",
+      "minLength": 1
+    },
+    "line": {
+      "type": ["integer", "null"],
+      "description": "1-based line number where the finding starts. Null for whole-file findings (e.g., a missing file, orphan file, or manifest-level issue).",
+      "minimum": 1
+    },
+    "message": {
+      "type": "string",
+      "description": "What the issue is, in one or two sentences. Concrete and actionable. Avoid hedging language ('might', 'could be').",
+      "minLength": 10,
+      "maxLength": 600
+    },
+    "suggested_fix": {
+      "type": ["string", "null"],
+      "description": "Optional concrete fix suggestion. Code snippet OK. Null if the fix is non-obvious or context-dependent."
+    },
+    "effort_estimate": {
+      "type": ["string", "null"],
+      "description": "Rough effort to resolve: XS (<1h), S (~half-day), M (1-2 days), L (3-5 days), XL (>1 week). Null if genuinely unknowable.",
+      "enum": ["XS", "S", "M", "L", "XL", null]
+    },
+    "auto_fixable": {
+      "type": "boolean",
+      "description": "True if the issue could be resolved by a one-line PR (e.g., bumping a version pin, removing a dead import). False for anything requiring design thought."
+    },
+    "code_snippet": {
+      "type": ["string", "null"],
+      "description": "Optional excerpt of the offending code for reviewer context. Must be ≤10 lines. Null if the finding is structural/file-level."
+    }
+  },
+  "allOf": [
+    {
+      "description": "If category is 'other', category_detail must be a non-empty string.",
+      "if": {
+        "properties": {"category": {"const": "other"}},
+        "required": ["category"]
+      },
+      "then": {
+        "properties": {
+          "category_detail": {"type": "string", "minLength": 1}
+        },
+        "required": ["category_detail"]
+      }
+    }
+  ]
+}
