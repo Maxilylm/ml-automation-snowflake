@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spark-snowflake"
+version = "0.2.0"
+description = "Snowflake development and ML automation extension for spark. SQL development, Snowpark pipelines, Snowflake ML training, and deployment to Snowflake Model Registry and Streamlit in Snowflake."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "Blend360" }]
+
+# Domain dependencies are intentionally NOT listed here. PM3-92 ships the
+# pyproject.toml infrastructure; per-plugin domain deps (torch/transformers/
+# prophet/pymc-marketing/etc.) get pinned in a follow-up ticket where someone
+# with domain knowledge can attest the version constraints. Until then,
+# `pip install -e .` installs nothing — keeping the workflow's existing
+# soft-noop behavior unchanged.
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+]
+
+[project.urls]
+Homepage = "https://github.com/BLEND360/ml-automation-snowflake"
+Repository = "https://github.com/BLEND360/ml-automation-snowflake"
+
+[tool.setuptools.packages.find]
+# Treat the plugin root as a flat package layout. The harness keeps Python
+# code in agents/, skills/, and ad-hoc helpers; this find-config picks up
+# any importable module that ships in the plugin without forcing a src/
+# layout migration.
+where = ["."]
+exclude = ["tests*", "docs*", ".github*", ".claude*", ".cortex-plugin*",
+           "schemas*", "scripts*", "templates*", "hooks*", "prompts*"]
+
+[tool.pytest.ini_options]
+# Coverage floor staged at 0 (no enforcement) to ship the infrastructure
+# without breaking CI on plugins that currently only have smoke tests
+# (PM3-50). Bump to 70 once domain tests land per-plugin (PM3-51..64
+# lifecycle). Addopts is intentionally minimal — workflow controls --cov.
+testpaths = ["tests"]
+addopts = "--cov-fail-under=0"
