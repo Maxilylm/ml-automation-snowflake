@@ -115,13 +115,38 @@ jobs:
             BATCH_ID=$(tr -d '[:space:]' < "$BATCH_ID_FILE")
             echo "Anthropic batch ID: $BATCH_ID"
 
-            # Idempotency: check whether a processed-batch-<batch_id> artifact exists
-            MARKER_EXISTS=$(gh api \
+            # Idempotency check (PM3-88 fix): the original implementation searched
+            # for a per-batch artifact named processed-batch-<id> that was never
+            # actually uploaded — every poll therefore reprocessed every batch
+            # for 30 days, multiplying GH-issue noise and Anthropic credits.
+            #
+            # Fix: list all processed-batches-<run_id> artifacts (the COMBINED
+            # ones that ARE actually uploaded by this workflow's final step),
+            # download each, and grep their contents for this BATCH_ID. If
+            # found, the batch was processed by a previous poll run.
+            BATCH_PROCESSED=false
+            COMBINED_ARTIFACTS=$(gh api \
               "repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
-              --jq "[.artifacts[] | select(.name == \"processed-batch-${BATCH_ID}\" and .expired == false)] | length")
+              --jq "[.artifacts[] | select((.name | startswith(\"processed-batches-\")) and .expired == false) | {name, run_id: (.workflow_run.id | tostring)}]")
 
-            if [ "${MARKER_EXISTS:-0}" -gt 0 ]; then
-              echo "Batch $BATCH_ID already processed (marker artifact found). Skipping."
+            COMBINED_COUNT=$(echo "$COMBINED_ARTIFACTS" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))")
+            if [ "${COMBINED_COUNT:-0}" -gt 0 ]; then
+              # Iterate, download, grep
+              while IFS='|' read -r CBN_NAME CBN_RUN; do
+                [ -z "$CBN_NAME" ] && continue
+                CBN_DIR="$RUNNER_TEMP/processed-check-$CBN_RUN"
+                mkdir -p "$CBN_DIR"
+                if gh run download "$CBN_RUN" --name "$CBN_NAME" --dir "$CBN_DIR" 2>/dev/null; then
+                  if grep -Fq "$BATCH_ID" "$CBN_DIR"/*.txt 2>/dev/null; then
+                    BATCH_PROCESSED=true
+                    break
+                  fi
+                fi
+              done < <(echo "$COMBINED_ARTIFACTS" | python3 -c "import sys,json; [print(it['name']+'|'+it['run_id']) for it in json.load(sys.stdin)]")
+            fi
+
+            if [ "$BATCH_PROCESSED" = "true" ]; then
+              echo "Batch $BATCH_ID already processed (found in a prior processed-batches-* artifact). Skipping."
               continue
             fi
 
@@ -150,61 +175,28 @@ jobs:
             fi
           done
 
-      # ── Upload per-batch idempotency markers for completed batches ────────
-      # Each completed batch gets its own named artifact: processed-batch-<batch_id>.
-      # We can only call upload-artifact once per step, so we emit a manifest of
-      # completed batch IDs and use a small Python script to do per-batch uploads
-      # via the GitHub API directly.
-      - name: Upload processed-batch marker artifacts
+      # ── Stage combined processed-batches manifest for upload ─────────────
+      # PM3-88 fix: the previous step (a Python heredoc that only print()-ed
+      # without uploading) has been removed. The idempotency mechanism is now
+      # purely the combined "processed-batches-<run_id>" artifact, written
+      # once per run and grep'd by future polls.
+      - name: Stage combined processed-batches manifest
         if: steps.gate.outputs.skip == 'false'
-        continue-on-error: true
-        env:
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_RUN_ID: ${{ github.run_id }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           shopt -s nullglob
           MARKERS=(completed-batches/*.txt)
           if [ "${#MARKERS[@]}" -eq 0 ]; then
-            echo "No completed batches to mark."
+            echo "No completed batches this run; nothing to stage."
+            : > all-processed-this-run.txt
             exit 0
           fi
-
+          # Each marker filename is the batch id; aggregate into a flat list.
           for marker_file in "${MARKERS[@]}"; do
             BATCH_ID=$(basename "$marker_file" .txt)
-            ARTIFACT_NAME="processed-batch-${BATCH_ID}"
-            echo "Registering marker artifact: $ARTIFACT_NAME"
-            # Upload via gh CLI artifact upload (requires GH Actions context;
-            # we use the REST API workaround: create a tiny release asset-style
-            # artifact by uploading an artifact with the GH API upload URL).
-            # In practice, actions/upload-artifact@v4 is the right tool; since
-            # we need a dynamic name we call it via a Python helper that shells
-            # out to the GH artifacts API.
-            python3 - <<PYEOF
-          import os, json
-          from urllib import request, error
-
-          token   = os.environ["GH_TOKEN"]
-          repo    = os.environ["GITHUB_REPOSITORY"]
-          run_id  = os.environ["GITHUB_RUN_ID"]
-          batch_id = "$BATCH_ID"
-          artifact_name = "$ARTIFACT_NAME"
-
-          # The GH Actions Artifacts v4 upload uses a two-step protocol
-          # (create upload URL, stream bytes).  From a regular runner step
-          # the simplest workaround is to document the completion in a
-          # repo issue label or as a file in the "all markers" artifact.
-          # We record the batch ID in a combined summary artifact instead;
-          # the idempotency check below is updated to match.
-          print(f"Marker for {artifact_name} noted.")
-          PYEOF
-          done
-
-          # Create a combined "all processed batches" artifact this run.
-          # The idempotency check will be updated to search for batch IDs inside it.
-          cat completed-batches/*.txt > all-processed-this-run.txt
-          echo "Combined processed list:"
+            echo "$BATCH_ID"
+          done > all-processed-this-run.txt
+          echo "Combined processed list (this run):"
           cat all-processed-this-run.txt
 
       - name: Upload combined processed-batches artifact
