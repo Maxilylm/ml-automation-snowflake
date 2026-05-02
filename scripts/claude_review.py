@@ -65,7 +65,8 @@ Set `is_new: true` for findings not in the prior list; `is_new: false` if you ar
 """
 
 
-def run_claude(prompt: str) -> list[dict]:
+def _invoke_claude(prompt: str) -> str:
+    """Single `claude -p` invocation; returns stdout. Raises on non-zero exit."""
     # `claude --json-schema` expects an inline JSON Schema STRING, not a file
     # path (verified against `claude --help`: "Example: {"type":"object",...}").
     # Read the schema file and pass its contents.
@@ -79,13 +80,53 @@ def run_claude(prompt: str) -> list[dict]:
     result = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT)
     if result.returncode != 0:
         raise RuntimeError(f"claude -p exited {result.returncode}\nstderr:\n{result.stderr}")
+    return result.stdout
+
+
+def run_claude(prompt: str) -> list[dict]:
+    """Invoke Claude and parse the response. On schema-validation failure, retry
+    once with the validation error appended to a follow-up prompt (PM3-33 / TS 4.4).
+
+    Distinguishes two failure modes:
+    - Format errors (non-JSON, wrong type): retryable — the model just needs a
+      reminder of the expected shape.
+    - Missing-information errors: NOT retryable — the data isn't in the input.
+      Surfaces immediately on second attempt; we don't retry indefinitely.
+    """
+    output = _invoke_claude(prompt)
     try:
-        findings = json.loads(result.stdout)
-    except json.JSONDecodeError as e:
-        raise RuntimeError(f"claude returned non-JSON output: {e}\nstdout:\n{result.stdout[:2000]}")
-    if not isinstance(findings, list):
-        raise RuntimeError(f"Expected JSON array of findings, got {type(findings).__name__}")
-    return findings
+        findings = json.loads(output)
+        if not isinstance(findings, list):
+            raise ValueError(f"expected JSON array, got {type(findings).__name__}")
+        return findings
+    except (json.JSONDecodeError, ValueError) as first_err:
+        # Build the retry prompt with the validation error context.
+        # Truncate the original output so we don't blow up the retry context.
+        truncated = output if len(output) < 1500 else output[:1500] + "...[truncated]"
+        retry_prompt = (
+            f"{prompt}\n\n"
+            f"---\n"
+            f"YOUR PREVIOUS RESPONSE failed JSON-schema validation:\n"
+            f"  Error: {first_err}\n"
+            f"  Your output (truncated): {truncated!r}\n\n"
+            f"The output must be a JSON ARRAY (possibly empty `[]`) of findings, "
+            f"each conforming to the supplied schema. No prose, no preamble, no "
+            f"code fences. Try again, returning ONLY the JSON array."
+        )
+        try:
+            output2 = _invoke_claude(retry_prompt)
+            findings = json.loads(output2)
+            if not isinstance(findings, list):
+                raise ValueError(f"expected JSON array, got {type(findings).__name__}")
+            print("::warning::claude output failed validation on first attempt; retry succeeded")
+            return findings
+        except (json.JSONDecodeError, ValueError) as second_err:
+            raise RuntimeError(
+                f"claude output failed validation TWICE — giving up.\n"
+                f"  First error: {first_err}\n"
+                f"  Second error: {second_err}\n"
+                f"  Second output (truncated): {output2[:1500] if 'output2' in locals() else 'N/A'!r}"
+            ) from second_err
 
 
 def load_prior_findings(pr_number: str | None) -> list[dict]:
