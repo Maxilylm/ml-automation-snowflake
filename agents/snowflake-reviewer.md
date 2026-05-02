@@ -6,8 +6,6 @@ color: "#0D7EAD"
 tools: [Read, Write, Bash(*), Glob, Grep]
 extends: spark
 routing_keywords: [snowflake review, snowflake optimize, snowflake cost, snowflake best practices, snowflake query performance, snowflake audit]
-hooks_into:
-  - after-evaluation
 ---
 
 # Snowflake Reviewer
