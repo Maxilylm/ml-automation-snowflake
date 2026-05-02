@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/m-lorenzolosada-blend/blend-spark-harness/schemas/finding.schema.json",
+  "$id": "https://github.com/BLEND360/ml-automation-snowflake/schemas/finding.schema.json",
   "title": "Code review finding",
   "description": "Single finding produced by the Claude review pipeline. Used as the structured-output schema for `claude -p --json-schema schemas/finding.schema.json`.",
   "type": "object",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/m-lorenzolosada-blend/blend-spark-harness/schemas/audit-finding.schema.json",
+  "$id": "https://github.com/BLEND360/ml-automation-snowflake/schemas/audit-finding.schema.json",
   "title": "Tech-debt audit finding",
   "description": "Single finding produced by the weekly tech-debt audit pipeline. Used as the item schema inside the `report_findings` tool call returned by the Anthropic Batches API.",
   "type": "object",
