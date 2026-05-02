@@ -118,3 +118,19 @@ For interactive (non-CI) use, prose is fine.
 - Branch names: `PM3-<ticket>-<slug>` (required — CI rejects PRs without a `PM3-N` reference).
 - Smart commits: `PM3-12 #in-progress`, `PM3-12 #done`, `PM3-12 #time 2h`. See `CONTRIBUTING.md`.
 - PR template at `.github/pull_request_template.md` — required Jira link.
+
+## Plan mode vs direct execution (CI policy)
+
+When invoked from CI (`claude -p` in `.github/workflows/claude-review.yml`), use **direct execution**, not plan mode. Reasons:
+
+- The CI invocation is well-scoped by definition — the diff is the work. Reviewing this PR's diff is a single, bounded task.
+- Plan mode adds latency and cost without changing the output for a bounded task.
+- The structured-output schema (`schemas/finding.schema.json`) already constrains the response shape; plan mode would not improve schema adherence.
+
+Use plan mode (interactively, NOT in CI) when:
+
+- Refactoring across many files where a wrong early decision wastes downstream work.
+- Adding a new agent / skill / command that touches multiple plugin layers.
+- Investigating an unfamiliar codebase before deciding what to change.
+
+Plan mode for **test generation** (when that workflow lands, PM3-19) may be appropriate when the diff is architectural — generating tests for a new module benefits from upfront planning. Decide per invocation; the default is direct execution unless the diff visibly exceeds 8 files (the same threshold that triggers multi-pass review per the prompt above).
