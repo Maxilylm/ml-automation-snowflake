@@ -65,6 +65,36 @@ def validate() -> int:
                 err(f"manifest name '{name}' does not match spark-<domain> pattern (strict mode)")
                 fails += 1
 
+    # ── Dual-manifest drift check (PM3-91) ────────────────────────────────────
+    # Plugins ship both .cortex-plugin/plugin.json (Cortex Code) and
+    # .claude-plugin/plugin.json (Claude Code native). Each platform expects
+    # its own dir. Drift on shared fields means the same plugin behaves
+    # differently in the two loaders. Warn-only in default mode (existing
+    # drift is pre-existing and gating it would block all 14 PRs); strict mode
+    # promotes to error.
+    claude_manifest_path = ROOT / ".claude-plugin" / "plugin.json"
+    if manifest is not None and claude_manifest_path.exists():
+        try:
+            claude_manifest = json.loads(claude_manifest_path.read_text())
+        except json.JSONDecodeError as e:
+            (err if STRICT else warn)(f".claude-plugin/plugin.json is not valid JSON: {e}")
+            if STRICT:
+                fails += 1
+            claude_manifest = None
+        if claude_manifest is not None:
+            SHARED_FIELDS = ("name", "version", "description", "license", "repository")
+            for field in SHARED_FIELDS:
+                cortex_v = manifest.get(field)
+                claude_v = claude_manifest.get(field)
+                if cortex_v != claude_v:
+                    msg = (f"dual-manifest drift on {field!r}: "
+                           f".cortex-plugin={cortex_v!r} vs .claude-plugin={claude_v!r}")
+                    if STRICT:
+                        err(msg)
+                        fails += 1
+                    else:
+                        warn(msg)
+
     # ── AGENTS.md ─────────────────────────────────────────────────────────────
     agents_md = ROOT / "AGENTS.md"
     if not agents_md.exists():
