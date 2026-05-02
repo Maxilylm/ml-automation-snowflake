@@ -134,3 +134,26 @@ Use plan mode (interactively, NOT in CI) when:
 - Investigating an unfamiliar codebase before deciding what to change.
 
 Plan mode for **test generation** (when that workflow lands, PM3-19) may be appropriate when the diff is architectural — generating tests for a new module benefits from upfront planning. Decide per invocation; the default is direct execution unless the diff visibly exceeds 8 files (the same threshold that triggers multi-pass review per the prompt above).
+## Temporarily disabled finding categories (PM3-35)
+
+When a finding category produces too many false positives (developer-dismissed >50% over a month, say), list it below. CI-invoked Claude **must skip** findings of these categories until the category is re-enabled (typically after a prompt-iteration ticket fixes the underlying false-positive pattern).
+
+**Currently disabled:** *(none)*
+
+**How to disable:** add the category enum value (from `schemas/finding.schema.json`) to the list above and ship a PR. The disablement is prompt-driven so it works without a code change. Optionally, a runtime override via the `DISABLED_CATEGORIES` env var (comma-separated) lets `scripts/post_findings.py` filter findings server-side as a defense-in-depth.
+
+**How to re-enable:** remove the category from the list and ship the prompt-tuning ticket that fixes the underlying false-positive pattern. Tag the PR with `category-reenabled:<name>` for audit trail.
+## Issue-reporting strategy (single-message vs sequential)
+
+Per TS 3.5, the choice between reporting all findings in one message vs sequential per-finding messages depends on whether the findings interact:
+
+- **Interacting findings** (fixing A changes the right answer for B): report **all in one message**. The reviewer/developer needs the full picture before deciding.
+- **Independent findings** (each can be fixed in isolation): can be sequential.
+
+**Policy for this harness:**
+
+- **CI claude-review** (post_findings.py): single-message — one batched PR review with N inline comments. The reviewer wants the full landscape; per-finding spam erodes attention. Already implemented.
+- **Auto-fix workflow** (when shipped): sequential per-finding when findings are tagged `independent: true`; single-message when tagged `interacting: true`. The schema reserves a future `interactions` field for this; not yet populated.
+- **Weekly tech-debt audit** (PM3-84): single-message into a tracker issue with linked sub-issues per finding. Same single-message semantics as PR review.
+
+When in doubt, default to single-message. The cost of over-reporting is reviewer fatigue; the cost of under-reporting (missing the interaction) is silent breakage.
