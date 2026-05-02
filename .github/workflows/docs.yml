@@ -18,24 +18,42 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Install mkdocs
         run: pip install mkdocs-material mkdocstrings[python]
       - name: Build docs site
         run: mkdocs build --strict
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    # Gate on Pages-enabled status. PM3-82: when GitHub Pages isn't enabled
+    # per repo (Settings → Pages → Source = GitHub Actions), actions/deploy-pages
+    # fails with HTTP 404. Detecting at runtime keeps the workflow green; once an
+    # admin enables Pages, the next push auto-detects and starts deploying — no
+    # template change required.
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Detect whether GitHub Pages is enabled
+        id: pages_check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "GitHub Pages is enabled; proceeding to deploy."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::GitHub Pages is not enabled on this repo (Settings → Pages → Source = GitHub Actions). Skipping deploy step. Build artifact was uploaded; once Pages is enabled, the next push will auto-deploy."
+          fi
       - id: deployment
-        uses: actions/deploy-pages@v5
+        if: steps.pages_check.outputs.enabled == 'true'
+        uses: actions/deploy-pages@v4

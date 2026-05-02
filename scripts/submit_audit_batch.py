@@ -14,7 +14,15 @@ Required env vars:
     GITHUB_REPOSITORY   — owner/repo format (e.g., acme/my-plugin)
 
 Optional env vars:
-    AUDIT_MODEL          — model to use (default: claude-sonnet-4-6)
+    AUDIT_MODEL          — model to use (default: claude-opus-4-7)
+
+PM3-89 / PM3-96: when ANTHROPIC_API_KEY first lands on a repo, the workflow runs
+end-to-end against the live API. Two failure modes were silent until 2026-05-02:
+1. The default model id was unverified — bumped to claude-opus-4-7 (system-attested).
+2. _run() swallowed subprocess stderr and returned empty strings on non-zero exit,
+   so a broken `git log` call would silently emit an empty audit context. _run()
+   now raises with stderr surfaced; the workflow fails fast instead of submitting
+   malformed prompts to the Batches API.
 """
 from __future__ import annotations
 
@@ -32,7 +40,11 @@ SCHEMA_PATH = ROOT / "schemas" / "audit-finding.schema.json"
 
 ANTHROPIC_API_VERSION = "2023-06-01"
 BATCHES_URL = "https://api.anthropic.com/v1/messages/batches"
-DEFAULT_MODEL = "claude-sonnet-4-6"
+DEFAULT_MODEL = "claude-opus-4-7"
+# Pattern of valid Anthropic model IDs (defensive sanity check; not a substitute
+# for the live /v1/messages call that ultimately validates).
+import re as _re
+_MODEL_ID_RE = _re.compile(r"^claude-(?:opus|sonnet|haiku)-\d+(?:-\d+){1,2}(?:-\d{8})?$")
 MAX_TOKENS = 8192
 
 
@@ -48,15 +60,22 @@ def require_env(name: str) -> str:
 
 # ── Repo context helpers ───────────────────────────────────────────────────────
 
-def _run(cmd: list[str], *, cwd: Path | None = None, default: str = "") -> str:
-    """Run a subprocess, returning stdout; on failure returns `default`."""
+def _run(cmd: list[str], *, cwd: Path | None = None) -> str:
+    """Run a subprocess, returning stdout. Raises RuntimeError on non-zero exit
+    with stderr included — fail-fast so the workflow surfaces the failure instead
+    of silently submitting a malformed prompt with empty context (PM3-96)."""
     try:
         result = subprocess.run(
-            cmd, capture_output=True, text=True, cwd=cwd or ROOT
+            cmd, capture_output=True, text=True, cwd=cwd or ROOT, check=False,
         )
-        return result.stdout if result.returncode == 0 else default
-    except OSError:
-        return default
+    except OSError as exc:
+        raise RuntimeError(f"could not exec {cmd!r}: {exc}") from exc
+    if result.returncode != 0:
+        raise RuntimeError(
+            f"{' '.join(cmd)!r} exited {result.returncode}\n"
+            f"stderr:\n{result.stderr.strip()}"
+        )
+    return result.stdout
 
 
 def build_repo_context() -> str:
@@ -212,6 +231,18 @@ def main() -> None:
     api_key = require_env("ANTHROPIC_API_KEY")
     repo = require_env("GITHUB_REPOSITORY")
     model = os.environ.get("AUDIT_MODEL", "").strip() or DEFAULT_MODEL
+
+    # Defensive shape check (PM3-89). The live API call below is the
+    # authoritative validator; this catches obvious typos before we burn the
+    # batch submission round-trip.
+    if not _MODEL_ID_RE.match(model):
+        print(
+            f"::error::AUDIT_MODEL={model!r} does not match the expected shape "
+            f"(claude-{{opus|sonnet|haiku}}-N-M[-N][-YYYYMMDD]). "
+            f"Override with the AUDIT_MODEL env var or update DEFAULT_MODEL.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
 
     print(f"model:  {model}")
     print(f"repo:   {repo}")
