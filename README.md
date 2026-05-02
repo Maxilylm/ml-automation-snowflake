@@ -18,13 +18,13 @@ claude plugin add /path/to/spark-snowflake
 
 ### Agents
 
-| Agent | Purpose | Hooks Into |
-|---|---|---|
-| `snowflake-data-engineer` | SQL development, pipelines, Snowpark | `after-init` |
-| `snowflake-ml-engineer` | Snowpark ML, ML Functions, Model Registry | `before-deploy` |
-| `snowflake-reviewer` | SQL quality, cost optimization, best practices | `after-evaluation` |
-| `snowflake-deployer` | Model Registry, Streamlit in Snowflake, stored procedures | *(direct invocation)* |
-| `snowflake-connector` | Connection setup, data loading/unloading | *(direct invocation)* |
+| Agent | Purpose |
+|---|---|
+| `snowflake-data-engineer` | SQL development, pipelines, Snowpark |
+| `snowflake-ml-engineer` | Snowpark ML, ML Functions, Model Registry |
+| `snowflake-reviewer` | SQL quality, cost optimization, best practices |
+| `snowflake-deployer` | Model Registry, Streamlit in Snowflake, stored procedures |
+| `snowflake-connector` | Connection setup, data loading/unloading |
 
 ### Commands
 

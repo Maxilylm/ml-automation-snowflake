@@ -6,8 +6,6 @@ color: "#29B5E8"
 tools: [Read, Write, Bash(*), Glob, Grep]
 extends: spark
 routing_keywords: [snowflake sql, snowflake table, snowflake pipeline, snowpark, snowflake ddl, snowflake warehouse, snowflake stage, snowflake stream, snowflake task, snowflake view, snowflake schema]
-hooks_into:
-  - after-init
 ---
 
 # Snowflake Data Engineer
